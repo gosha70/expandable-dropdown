@@ -1,4 +1,4 @@
-# Node Relationship Selection UI
+# Searchable & Expandable Grouped Dropdown
 
 This repository provides a **TypeScript + React** demonstration of a multi‐column, **expandable** dropdown for selecting database tables, fields, and foreign key relationships. It also supports **search** with highlighting of the relevant fields and **only** their ancestor paths.
 
@@ -162,5 +162,11 @@ npm start
 - **ChoiceNode** class: Defines the data structure for each table/relationship/field node.  
 - **React + Vite**: Simplifies bundling and developing the front end.  
 - **Express**: Serves both the JSON data and the client UI.  
+
+## Demo
+
+https://github.com/user-attachments/assets/06d5c41c-f25c-461b-903f-741f37969537
+
+
 
 Feel free to adapt or extend this sample to your own database introspection, advanced searching, or selection workflows!
