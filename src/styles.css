@@ -1,0 +1,18 @@
+.card {
+    border: 1px solid #ccc;
+    margin: 10px;
+    padding: 10px;
+    width: 200px;
+  }
+  
+  .card h3 {
+    margin-top: 0;
+  }
+  
+  .card div {
+    margin-left: 10px;
+  }
+  
+  .card button {
+    margin-left: 5px;
+  }  

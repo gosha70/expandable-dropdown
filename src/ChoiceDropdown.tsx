@@ -6,127 +6,105 @@ interface ChoiceDropdownProps {
   data: ChoiceNode[];
 }
 
-/**
- * Renders a multi-column hierarchical picker with:
- * - No expand icon if node.fieldIndex === 0 (the “top” table node in each column)
- * - Expandable “relationship” nodes (isGroupNode && fieldIndex != 0)
- * - “>” (collapsed) or “<” (expanded) icon on the *right* side of the label
- * - Highlight only the matched node + ancestors on search
- */
+interface CardState {
+  nodes: ChoiceNode[];
+  top: number;
+}
+
 export const ChoiceDropdown: React.FC<ChoiceDropdownProps> = ({ data }) => {
+  const CARD_WIDTH = 240;
+  const CARD_GAP = 16;
+
   const [choices, setChoices] = useState<ChoiceNode[]>(data);
   const [searchTerm, setSearchTerm] = useState("");
-  // Which indexPaths are expanded
-  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
+  const [cards, setCards] = useState<CardState[]>([{ nodes: data, top: 0 }]);
 
-  // --- SEARCH ---
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;
     setSearchTerm(term);
-
     clearHighlight(choices);
-    if (term.trim()) {
-      highlightNodes(choices, term.trim());
-    }
+    if (term.trim()) highlightNodes(choices, term.trim());
     setChoices([...choices]);
+    setCards([{ nodes: choices, top: 0 }]);
   };
 
-  // Expand/collapse
-  const toggleExpand = (nodePath: string) => {
-    const newPaths = new Set(expandedPaths);
-    if (newPaths.has(nodePath)) {
-      newPaths.delete(nodePath);
-    } else {
-      newPaths.add(nodePath);
+  const handleToggle = (
+    node: ChoiceNode,
+    cardIndex: number,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
+    const newCards = cards.slice(0, cardIndex + 1);
+    const isSame = cards[cardIndex + 1]?.nodes === node.subNodes;
+    if (isSame) {
+      setCards(newCards);
+    } else if (node.subNodes.length > 0) {
+      // Calculate absolute top by adding parent card's top + clicked row offset
+      const parentTop = cards[cardIndex].top;
+      const clickedOffset = (event.currentTarget as HTMLElement).offsetTop;
+      newCards.push({ nodes: node.subNodes, top: parentTop + clickedOffset });
+      setCards(newCards);
     }
-    setExpandedPaths(newPaths);
-  };
-
-  /**
-   * Recursively render a column of nodes, then if expanded,
-   * render another column to the right for its subNodes.
-   */
-  const renderColumn = (
-    nodes: ChoiceNode[],
-    columnIndex: number,
-    parentPath: string
-  ): JSX.Element => {
-    return (
-      <div
-        style={{
-          display: "inline-block",
-          verticalAlign: "top",
-          marginRight: "1rem",
-          border: "1px solid #ccc",
-          padding: "1rem",
-        }}
-      >
-        {nodes.map((node) => {
-          const currentPath = parentPath
-            ? `${parentPath}.${node.fieldIndex}`
-            : `${node.fieldIndex}`;
-          const isExpanded = expandedPaths.has(currentPath);
-
-          // Is this the top table node in the column? (fieldIndex === 0)
-          const isTopNode = (node.fieldIndex === 0);
-
-          // Decide if we can expand/collapse on click
-          const canExpand = node.isGroupNode && !isTopNode;
-
-          // Choose the arrow icon (on the right)
-          let arrow = "";
-          if (canExpand) {
-            arrow = isExpanded ? "<" : ">";
-          }
-
-          return (
-            <React.Fragment key={currentPath}>
-              <div
-                style={{
-                  backgroundColor: node.isHighlighted ? "#FFFF99" : "transparent",
-                  marginBottom: "0.5rem",
-                  cursor: canExpand ? "pointer" : "default",
-                  whiteSpace: "nowrap",
-                }}
-                onClick={() => {
-                  if (canExpand) {
-                    toggleExpand(currentPath);
-                  }
-                }}
-              >
-                <b>[{node.label}]</b>
-                {arrow && (
-                  <span style={{ marginLeft: "4px" }}>
-                    {arrow}
-                  </span>
-                )}
-              </div>
-
-              {isExpanded && node.subNodes.length > 0 && (
-                renderColumn(node.subNodes, columnIndex + 1, currentPath)
-              )}
-            </React.Fragment>
-          );
-        })}
-      </div>
-    );
   };
 
   return (
-    <div style={{ marginTop: "1rem" }}>
-      {/* Remove the second title. Let the parent App or page set <h1> if desired. */}
-      <div style={{ marginBottom: "1rem" }}>
-        <input
-          type="text"
-          placeholder="Search fields..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-          style={{ padding: "0.5rem", width: "200px" }}
-        />
-      </div>
+    <div style={{ position: 'relative', minHeight: 300, padding: '1rem' }}>
+      <input
+        type="text"
+        placeholder="Search fields..."
+        value={searchTerm}
+        onChange={handleSearchChange}
+        style={{ padding: '0.5rem', width: '400px', marginBottom: '1rem' }}
+      />
 
-      {/* Render the first/top column */}
-      {renderColumn(choices, 0, "")}
+      <div style={{ position: 'relative' }}>
+        {cards.map((card, i) => {
+          const header = card.nodes.find((n) => n.fieldIndex === 0);
+          const items = card.nodes.filter((n) => n.fieldIndex !== 0);
+          const left = i * (CARD_WIDTH + CARD_GAP);
+
+          return (
+            <div
+              key={i}
+              style={{
+                position: 'absolute',
+                top: card.top,
+                left,
+                width: CARD_WIDTH,
+                border: '1px solid #ccc',
+                borderRadius: 4,
+                padding: '1rem',
+                background: '#fff',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              }}
+            >
+              {header && <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>[{header.label}]</div>}
+
+              {items.map((node) => {
+                const isExpanded = cards[i + 1]?.nodes === node.subNodes;
+                const canExpand = node.isGroupNode;
+                const arrow = canExpand ? (isExpanded ? '<' : '>') : '';
+
+                return (
+                  <div
+                    key={`${i}-${node.fieldIndex}`}
+                    onClick={(e) => canExpand && handleToggle(node, i, e)}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      backgroundColor: node.isHighlighted ? '#FFFF99' : 'transparent',
+                      cursor: canExpand ? 'pointer' : 'default',
+                      padding: '4px 0'
+                    }}
+                  >
+                    <span>{node.label}</span>
+                    {arrow && <span>{arrow}</span>}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

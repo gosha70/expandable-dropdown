@@ -30,5 +30,15 @@ export function buildChoiceData(): ChoiceNode[] {
   relC.addSubNode(new ChoiceNode("id", false, "4.3", 1));
   relC.addSubNode(new ChoiceNode("field2", false, "4.3", 2));
 
+  // Relation D
+  const relD: ChoiceNode = new ChoiceNode("fieldD", true, "", 5);
+  choices.push(relD);
+
+  // Sub-nodes for fieldD -> TableD
+  const choiceD: ChoiceNode = new ChoiceNode("TableD", true, "5", 0);
+  relD.addSubNode(choiceD);
+  relD.addSubNode(new ChoiceNode("id", false, "5", 1));
+  relD.addSubNode(new ChoiceNode("field1", false, "5", 2));
+
   return choices;
 }
