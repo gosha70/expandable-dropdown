@@ -35,6 +35,7 @@ We imagine three tables:
   - `field1`
   - `field2`
   - `fieldB (FK -> TableB)`
+  - `fieldD (FK -> TableD)`
 
 - **TableB**  
   - `id (PK)`
@@ -44,6 +45,10 @@ We imagine three tables:
 - **TableC**  
   - `id (PK)`
   - `field2`
+ 
+- **TableD**  
+  - `id (PK)`
+  - `field1`
 
 In this model, TableA relates to TableB, which in turn relates to TableC. The code (in `buildData.ts`) produces a hierarchical `ChoiceNode[]`, such as:
 
@@ -61,9 +66,18 @@ In this model, TableA relates to TableB, which in turn relates to TableC. The co
           { label: "id", ... },
           { label: "field2", ... }
       ]}
+  ]},
+  { label: "fieldD", isGroupNode: true, subNodes: [
+      { label: "TableD", isGroupNode: true, ... },
+      { label: "id", ... },
+      { label: "field1", ... }
   ]}
 ]
 ```
+### Expandle Dropdown Component UX
+
+<img width="759" alt="image" src="https://github.com/user-attachments/assets/5fa08c33-0b78-475d-abab-2e9e7438d2ed" />
+
 
 ### Key Requirements
 
@@ -165,7 +179,10 @@ npm start
 
 ## Demo
 
-https://github.com/user-attachments/assets/06d5c41c-f25c-461b-903f-741f37969537
+
+
+https://github.com/user-attachments/assets/f1119734-d2eb-4995-a11a-406438916b7b
+
 
 
 
