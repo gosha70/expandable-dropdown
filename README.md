@@ -109,8 +109,8 @@ A minimal structure might look like:
 
 1. **Clone** the repo (or download the ZIP):
    ```bash
-   git clone https://github.com/your-username/node-relationship-ui.git
-   cd node-relationship-ui
+   git clone https://github.com/gosha70/expandable-dropdown.git
+   cd expandable-dropdown
    ```
 2. **Install dependencies**:
    ```bash
